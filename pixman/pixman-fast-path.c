@@ -1815,6 +1815,15 @@ FAST_SIMPLE_ROTATE (8888, uint32_t)
 /* Lets a fast path that only moves pixels also take wide formats */
 #define WIDE_FLAGS(flags) ((flags) & ~FAST_PATH_NARROW_FORMAT)
 
+/* A copy only moves pixels, so it also works for wide formats */
+#define SRC_MEMCPY_WIDE_FAST_PATH(s, d)					\
+    { FAST_PATH (							\
+	    SRC,							\
+	    s, WIDE_FLAGS (SOURCE_FLAGS (s)),				\
+	    null, 0,							\
+	    d, WIDE_FLAGS (FAST_PATH_STD_DEST_FLAGS),			\
+	    fast_composite_src_memcpy) }
+
 static const pixman_fast_path_t c_fast_paths[] =
 {
     PIXMAN_STD_FAST_PATH (OVER, solid, a8, r5g6b5, fast_composite_over_n_8_0565),
@@ -1880,6 +1889,12 @@ static const pixman_fast_path_t c_fast_paths[] =
     PIXMAN_STD_FAST_PATH (SRC, x1r5g5b5, null, x1r5g5b5, fast_composite_src_memcpy),
     PIXMAN_STD_FAST_PATH (SRC, a1r5g5b5, null, x1r5g5b5, fast_composite_src_memcpy),
     PIXMAN_STD_FAST_PATH (SRC, a8, null, a8, fast_composite_src_memcpy),
+    SRC_MEMCPY_WIDE_FAST_PATH (a2r10g10b10, a2r10g10b10),
+    SRC_MEMCPY_WIDE_FAST_PATH (a2r10g10b10, x2r10g10b10),
+    SRC_MEMCPY_WIDE_FAST_PATH (x2r10g10b10, x2r10g10b10),
+    SRC_MEMCPY_WIDE_FAST_PATH (a2b10g10r10, a2b10g10r10),
+    SRC_MEMCPY_WIDE_FAST_PATH (a2b10g10r10, x2b10g10r10),
+    SRC_MEMCPY_WIDE_FAST_PATH (x2b10g10r10, x2b10g10r10),
     PIXMAN_STD_FAST_PATH (IN, a8, null, a8, fast_composite_in_8_8),
     PIXMAN_STD_FAST_PATH (IN, solid, a8, a8, fast_composite_in_n_8_8),
 
