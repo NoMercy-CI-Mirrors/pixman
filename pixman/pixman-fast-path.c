@@ -1812,6 +1812,9 @@ FAST_SIMPLE_ROTATE (8, uint8_t)
 FAST_SIMPLE_ROTATE (565, uint16_t)
 FAST_SIMPLE_ROTATE (8888, uint32_t)
 
+/* Lets a fast path that only moves pixels also take wide formats */
+#define WIDE_FLAGS(flags) ((flags) & ~FAST_PATH_NARROW_FORMAT)
+
 static const pixman_fast_path_t c_fast_paths[] =
 {
     PIXMAN_STD_FAST_PATH (OVER, solid, a8, r5g6b5, fast_composite_over_n_8_0565),
@@ -1935,29 +1938,45 @@ static const pixman_fast_path_t c_fast_paths[] =
     NEAREST_FAST_PATH (OVER, x8b8g8r8, a8b8g8r8),
     NEAREST_FAST_PATH (OVER, a8b8g8r8, a8b8g8r8),
 
+/* A rotation only moves pixels, so it also works for wide formats */
 #define SIMPLE_ROTATE_FLAGS(angle)					  \
     (FAST_PATH_ROTATE_ ## angle ## _TRANSFORM	|			  \
      FAST_PATH_NEAREST_FILTER			|			  \
      FAST_PATH_SAMPLES_COVER_CLIP_NEAREST	|			  \
-     FAST_PATH_STANDARD_FLAGS)
+     WIDE_FLAGS (FAST_PATH_STANDARD_FLAGS))
 
 #define SIMPLE_ROTATE_FAST_PATH(op,s,d,suffix)				  \
     {   PIXMAN_OP_ ## op,						  \
 	PIXMAN_ ## s, SIMPLE_ROTATE_FLAGS (90),				  \
 	PIXMAN_null, 0,							  \
-	PIXMAN_ ## d, FAST_PATH_STD_DEST_FLAGS,				  \
+	PIXMAN_ ## d, WIDE_FLAGS (FAST_PATH_STD_DEST_FLAGS),		  \
 	fast_composite_rotate_90_##suffix,				  \
     },									  \
     {   PIXMAN_OP_ ## op,						  \
 	PIXMAN_ ## s, SIMPLE_ROTATE_FLAGS (270),			  \
 	PIXMAN_null, 0,							  \
-	PIXMAN_ ## d, FAST_PATH_STD_DEST_FLAGS,				  \
+	PIXMAN_ ## d, WIDE_FLAGS (FAST_PATH_STD_DEST_FLAGS),		  \
 	fast_composite_rotate_270_##suffix,				  \
     }
 
     SIMPLE_ROTATE_FAST_PATH (SRC, a8r8g8b8, a8r8g8b8, 8888),
     SIMPLE_ROTATE_FAST_PATH (SRC, a8r8g8b8, x8r8g8b8, 8888),
     SIMPLE_ROTATE_FAST_PATH (SRC, x8r8g8b8, x8r8g8b8, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, a8b8g8r8, a8b8g8r8, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, a8b8g8r8, x8b8g8r8, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, x8b8g8r8, x8b8g8r8, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, b8g8r8a8, b8g8r8a8, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, b8g8r8a8, b8g8r8x8, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, b8g8r8x8, b8g8r8x8, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, r8g8b8a8, r8g8b8a8, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, r8g8b8a8, r8g8b8x8, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, r8g8b8x8, r8g8b8x8, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, a2r10g10b10, a2r10g10b10, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, a2r10g10b10, x2r10g10b10, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, x2r10g10b10, x2r10g10b10, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, a2b10g10r10, a2b10g10r10, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, a2b10g10r10, x2b10g10r10, 8888),
+    SIMPLE_ROTATE_FAST_PATH (SRC, x2b10g10r10, x2b10g10r10, 8888),
     SIMPLE_ROTATE_FAST_PATH (SRC, r5g6b5, r5g6b5, 565),
     SIMPLE_ROTATE_FAST_PATH (SRC, a8, a8, 8),
 
